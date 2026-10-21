@@ -1,0 +1,125 @@
+# ================================
+# Dependencies
+# ================================
+node_modules/
+jspm_packages/
+.pnp/
+.pnp.js
+
+# ================================
+# Environment Variables
+# ================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+*.env
+
+# ================================
+# Build Outputs
+# ================================
+# React production build
+build/
+dist/
+out/
+.next/
+.nuxt/
+
+# ================================
+# Logs
+# ================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.logs/
+
+# ================================
+# Testing
+# ================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ================================
+# Cache
+# ================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.node_repl_history
+.terser-plugin-cache/
+
+# ================================
+# Package Manager Files
+# ================================
+.npm
+.yarn/
+.yarn-integrity
+.yarnrc.yml
+.pnp.*
+package-lock.json.bak
+
+# ================================
+# OS Files
+# ================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ================================
+# IDE / Editor
+# ================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ================================
+# MongoDB
+# ================================
+data/db/
+*.mdb
+*.ns
+*.0
+*.1
+*.2
+mongod.lock
+
+# ================================
+# Uploads / Media (if applicable)
+# ================================
+uploads/
+public/uploads/
+*.tmp
+
+# ================================
+# Misc
+# ================================
+.mongo
+*.pid
+*.seed
+*.pid.lock
+.temp/
+.tmp/
+temp/
+tmp/

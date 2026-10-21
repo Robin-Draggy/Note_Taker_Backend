@@ -16,7 +16,6 @@ export const validate = (schema) => (req, _res, next) => {
     return next(new ApiError(422, "Validation failed", errors));
   }
 
-  // Stash parsed/coerced values — Express 5–safe (no reassignment of req.query)
-  req.validated = result.data;
+  req.validated = { ...(req.validated ?? {}), ...result.data };
   next();
 };

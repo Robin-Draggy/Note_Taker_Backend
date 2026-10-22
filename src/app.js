@@ -17,13 +17,36 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
+
+const allowedOrigins = [
+  "https://notetaker-ruby-alpha.vercel.app",
+  "http://localhost:5000",
+  "http://localhost:5173",
+  "http://localhost:5500",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      callback(null, false);
+    },
+    credentials: false,
+  }),
+);
 app.use(express.json({ limit: "16kb" }));
 app.use(pinoHttp());
 
 // Health
 app.get("/api/health", (_req, res) => {
-  res.status(200).json({ success: true, message: "Secure Notes API is running" });
+  res
+    .status(200)
+    .json({ success: true, message: "Secure Notes API is running" });
 });
 
 // Static frontend

@@ -44,7 +44,8 @@
       }
       input,
       textarea,
-      button {
+      button,
+      select {
         font: inherit;
         padding: 0.5rem;
         width: 100%;
@@ -120,15 +121,6 @@
       .row > input {
         flex: 1;
       }
-      pre {
-        background: #f4f4f4;
-        border-radius: 4px;
-        padding: 0.75rem;
-        overflow-x: auto;
-        max-height: 320px;
-        font-size: 0.8rem;
-        margin: 0.5rem 0 0;
-      }
       .badge {
         display: inline-block;
         background: #e0e7ff;
@@ -138,6 +130,11 @@
         font-size: 0.75rem;
         margin-left: 0.5rem;
       }
+      .meta {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+      }
     </style>
   </head>
   <body>
@@ -146,8 +143,8 @@
     <div id="error"></div>
 
     <!-- ============================================================
-       AUTH SECTION
-       ============================================================ -->
+         AUTH SECTION
+         ============================================================ -->
     <div id="authSection">
       <fieldset>
         <legend>Register</legend>
@@ -183,8 +180,8 @@
     </div>
 
     <!-- ============================================================
-       NOTES SECTION (authenticated users)
-       ============================================================ -->
+         NOTES SECTION (authenticated users)
+         ============================================================ -->
     <div id="notesSection" class="hidden">
       <div
         style="
@@ -214,14 +211,26 @@
     </div>
 
     <!-- ============================================================
-       POSTS SECTION (public) — Scenario 2
-       ============================================================ -->
-    n
+         POSTS SECTION (public) — Scenario 2
+         ============================================================ -->
     <div id="postsSection">
-      <h2>Posts by User <span class="badge">Scenario 2</span></h2>
+      <h2>Posts <span class="badge">Scenario 2</span></h2>
 
+      <!-- Create post (only shown when logged in) -->
+      <fieldset id="createPostFieldset" class="hidden">
+        <legend>Create Post</legend>
+        <form id="createPostForm">
+          <label
+            >Title <input type="text" name="title" required maxlength="200"
+          /></label>
+          <label>Content <textarea name="content" required></textarea></label>
+          <button type="submit">Post</button>
+        </form>
+      </fieldset>
+
+      <!-- Browse users -->
       <fieldset>
-        <legend>Browse users</legend>
+        <legend>Browse users' posts</legend>
         <div class="row">
           <select id="publicUserSelect" style="flex: 1; padding: 0.5rem">
             <option value="">Loading users…</option>
@@ -230,24 +239,26 @@
             Load Posts
           </button>
         </div>
-        <p style="font-size: 0.8rem; color: #999; margin: 0.5rem 0 0">
+        <p class="meta" style="margin: 0.5rem 0 0">
           Public directory — only names are shown. Click "Load Posts" to see
           that user's posts.
         </p>
       </fieldset>
 
-      <div id="postsOutput" style="margin-top: 0.75rem"></div>
+      <div id="postsOutput"></div>
     </div>
 
     <!-- ============================================================
-       ADMIN SECTION (admins only)
-       ============================================================ -->
+         ADMIN SECTION (admins only)
+         ============================================================ -->
     <div id="adminSection" class="hidden">
       <h2>Admin</h2>
 
       <fieldset>
         <legend>All Users</legend>
-        <button id="ttn" class="small" style="width: auto">Load Users</button>
+        <button id="loadUsersBtn" class="small" style="width: auto">
+          Load Users
+        </button>
         <div id="usersOutput" style="margin-top: 0.75rem"></div>
       </fieldset>
 
@@ -272,36 +283,34 @@
 
     <script>
       /* ============================================================
-       API base — same origin as the served page
-       ============================================================ */
+         API base
+         ============================================================ */
       const API = "/api";
 
       /* ============================================================
-       State
-       ============================================================ */
+         State
+         ============================================================ */
       let token = localStorage.getItem("token") || null;
       let currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
       /* ============================================================
-       DOM helpers
-       ============================================================ */
+         DOM refs
+         ============================================================ */
       const $ = (sel) => document.querySelector(sel);
       const errorBox = $("#error");
       const userInfo = $("#userInfo");
       const authSection = $("#authSection");
       const notesSection = $("#notesSection");
       const adminSection = $("#adminSection");
+      const postsSection = $("#postsSection");
+      const createPostFieldset = $("#createPostFieldset");
       const notesList = $("#notesList");
 
       /* ============================================================
-       Utilities
-       ============================================================ */
+         Utilities
+         ============================================================ */
       function showError(msg) {
         errorBox.textContent = msg || "";
-      }
-
-      function pretty(obj) {
-        return JSON.stringify(obj, null, 2);
       }
 
       async function api(path, options = {}) {
@@ -326,14 +335,15 @@
       }
 
       /* ============================================================
-       Session
-       ============================================================ */
+         Session
+         ============================================================ */
       function setSession(user, jwt) {
         token = jwt;
         currentUser = user;
         localStorage.setItem("token", jwt);
         localStorage.setItem("user", JSON.stringify(user));
         renderAuthState();
+        loadPublicUsers();
       }
 
       function clearSession() {
@@ -342,11 +352,12 @@
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         renderAuthState();
+        loadPublicUsers();
       }
 
       /* ============================================================
-       Render auth state
-       ============================================================ */
+         Render auth state
+         ============================================================ */
       function renderAuthState() {
         showError("");
 
@@ -356,6 +367,7 @@
         authSection.classList.toggle("hidden", loggedIn);
         notesSection.classList.toggle("hidden", !loggedIn);
         adminSection.classList.toggle("hidden", !isAdmin);
+        createPostFieldset.classList.toggle("hidden", !loggedIn);
 
         userInfo.textContent = loggedIn
           ? `Logged in as ${currentUser.name} (${currentUser.role})`
@@ -365,8 +377,8 @@
       }
 
       /* ============================================================
-       NOTES — list / create / update / delete
-       ============================================================ */
+         NOTES
+         ============================================================ */
       async function loadNotes() {
         notesList.innerHTML = "<p>Loading…</p>";
         try {
@@ -382,13 +394,13 @@
             const div = document.createElement("div");
             div.className = "note";
             div.innerHTML = `
-            <h3></h3>
-            <p></p>
-            <div class="actions">
-              <button class="edit small" data-id="${note._id}">Edit</button>
-              <button class="delete small danger" data-id="${note._id}">Delete</button>
-            </div>
-          `;
+              <h3></h3>
+              <p></p>
+              <div class="actions">
+                <button class="edit small" data-id="${note._id}">Edit</button>
+                <button class="delete small danger" data-id="${note._id}">Delete</button>
+              </div>
+            `;
             div.querySelector("h3").textContent = note.title;
             div.querySelector("p").textContent = note.content;
             div
@@ -433,8 +445,8 @@
       }
 
       /* ============================================================
-       AUTH FORMS
-       ============================================================ */
+         AUTH FORMS
+         ============================================================ */
       $("#registerForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         showError("");
@@ -482,8 +494,8 @@
       });
 
       /* ============================================================
-       CREATE NOTE
-       ============================================================ */
+         CREATE NOTE
+         ============================================================ */
       $("#createNoteForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         showError("");
@@ -504,25 +516,31 @@
       });
 
       /* ============================================================
-       POSTS — Scenario 2 (public)
-       ============================================================ */
-      $("#loadPostsBtn").addEventListener("click", async () => {
-        const userId = $("#postsUserId").value.trim();
-        const out = $("#postsOutput");
-        out.textContent = "Loading…";
+         CREATE POST
+         ============================================================ */
+      $("#createPostForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showError("");
+        const form = new FormData(e.target);
         try {
-          const res = await api(
-            `/posts/user/${userId}?limit=50&sort=-createdAt`,
-          );
-          out.textContent = pretty(res.data);
+          await api("/posts", {
+            method: "POST",
+            body: JSON.stringify({
+              title: form.get("title"),
+              content: form.get("content"),
+            }),
+          });
+          e.target.reset();
+          // Refresh the currently-shown user's posts (which is likely you)
+          loadPostsForUser(currentUser.id);
         } catch (err) {
-          out.textContent = err.message;
+          showError(err.message);
         }
       });
 
       /* ============================================================
-   Public user directory
-   ============================================================ */
+         PUBLIC USERS
+         ============================================================ */
       async function loadPublicUsers() {
         const select = $("#publicUserSelect");
         try {
@@ -537,42 +555,27 @@
           data.results.forEach((u) => {
             const opt = document.createElement("option");
             opt.value = u._id;
-            opt.textContent = u.name; // Only name — no email leak
+            opt.textContent = u.name;
             select.appendChild(opt);
           });
+
+          // If logged in, default to current user
+          if (currentUser?.id) {
+            select.value = currentUser.id;
+          }
         } catch (err) {
           select.innerHTML = `<option value="">Failed to load: ${err.message}</option>`;
         }
       }
 
       /* ============================================================
-   Load posts for a picked user
-   ============================================================ */
-      $("#loadPickedUserPostsBtn").addEventListener("click", async () => {
-        const userId = $("#publicUserSelect").value;
-        if (!userId) {
-          $("#postsOutput").textContent = "Pick a user first.";
-          return;
-        }
-        await loadPostsForUser(userId);
-      });
-
-      /* ============================================================
-   Load posts for a manually typed id
-   ============================================================ */
-      $("#loadPostsBtn").addEventListener("click", async () => {
-        const userId = $("#postsUserId").value.trim();
-        await loadPostsForUser(userId);
-      });
-
-      /* ============================================================
-   Shared loader
-   ============================================================ */
+         LOAD POSTS BY USER (single handler, single source)
+         ============================================================ */
       async function loadPostsForUser(userId) {
         const out = $("#postsOutput");
 
         if (!userId) {
-          out.innerHTML = "<em>Please pick a user or enter an ID.</em>";
+          out.innerHTML = "<em>Please pick a user first.</em>";
           return;
         }
 
@@ -589,14 +592,10 @@
           data.results.forEach((p) => {
             const div = document.createElement("div");
             div.className = "note";
-            div.innerHTML = `
-        <h3></h3>
-        <p></p>
-        <div style="font-size:0.8rem; color:#666; margin-top:0.25rem;"></div>
-      `;
+            div.innerHTML = `<h3></h3><p></p><div class="meta"></div>`;
             div.querySelector("h3").textContent = p.title;
             div.querySelector("p").textContent = p.content;
-            div.querySelector("div").textContent =
+            div.querySelector(".meta").textContent =
               `by ${p.author?.name ?? "unknown"} — ${new Date(p.createdAt).toLocaleString()}`;
             out.appendChild(div);
           });
@@ -605,9 +604,14 @@
         }
       }
 
+      $("#loadPickedUserPostsBtn").addEventListener("click", () => {
+        const userId = $("#publicUserSelect").value;
+        loadPostsForUser(userId);
+      });
+
       /* ============================================================
-       ADMIN — users / all notes / interests (Scenario 1)
-       ============================================================ */
+         ADMIN
+         ============================================================ */
       $("#loadUsersBtn").addEventListener("click", async () => {
         const out = $("#usersOutput");
         out.innerHTML = "<em>Loading…</em>";
@@ -622,13 +626,9 @@
             const row = document.createElement("div");
             row.style.cssText =
               "padding: 0.4rem 0; border-bottom: 1px solid #eee;";
-            row.innerHTML = `
-        <strong></strong>
-        <span style="color:#666; font-size:0.85rem;"></span>
-        <span class="badge" style="background:#eee; color:#333;"></span>
-      `;
+            row.innerHTML = `<strong></strong> <span class="meta"></span> <span class="badge" style="background:#eee;color:#333;"></span>`;
             row.querySelector("strong").textContent = u.name;
-            row.querySelector("span").textContent = " — " + u.email;
+            row.querySelector(".meta").textContent = u.email || "";
             row.querySelector(".badge").textContent = u.role;
             out.appendChild(row);
           });
@@ -650,14 +650,10 @@
           data.results.forEach((n) => {
             const div = document.createElement("div");
             div.className = "note";
-            div.innerHTML = `
-        <h3></h3>
-        <p></p>
-        <div style="font-size:0.8rem; color:#666; margin-top:0.25rem;"></div>
-      `;
+            div.innerHTML = `<h3></h3><p></p><div class="meta"></div>`;
             div.querySelector("h3").textContent = n.title;
             div.querySelector("p").textContent = n.content;
-            div.querySelector("div").textContent =
+            div.querySelector(".meta").textContent =
               `by ${n.owner?.name ?? "unknown"} (${n.owner?.email ?? "—"})`;
             out.appendChild(div);
           });
@@ -701,8 +697,8 @@
       });
 
       /* ============================================================
-       Boot
-       ============================================================ */
+         Boot
+         ============================================================ */
       renderAuthState();
       loadPublicUsers();
     </script>

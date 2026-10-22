@@ -9,6 +9,7 @@ import { router as authRoutes } from "./routes/auth.route.js";
 import { router as noteRoutes } from "./routes/note.route.js";
 import { router as adminRoutes } from "./routes/admin.route.js";
 import { router as postRoutes } from "./routes/post.route.js";
+import { router as userRoutes } from "./routes/user.route.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,6 +34,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/posts", postRoutes);
+
+app.use("/api/users", userRoutes);
 
 // 404 + error handler (must be last)
 app.use(notFoundHandler);

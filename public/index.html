@@ -1,278 +1,398 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secure Notes</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 760px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      line-height: 1.5;
-      color: #222;
-    }
-    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
-    fieldset { border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; padding: 1rem; }
-    legend { font-weight: 600; padding: 0 0.5rem; }
-    label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    input, textarea, button {
-      font: inherit;
-      padding: 0.5rem;
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    textarea { min-height: 70px; resize: vertical; }
-    button {
-      background: #222;
-      color: white;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      border: none;
-    }
-    button:hover { background: #444; }
-    button.secondary { background: #888; }
-    button.danger { background: #b00; }
-    button.small { width: auto; padding: 0.25rem 0.75rem; font-size: 0.85rem; margin: 0; }
-    .hidden { display: none !important; }
-    #error { color: #b00; margin-bottom: 1rem; min-height: 1.25rem; font-size: 0.9rem; }
-    #userInfo { margin-bottom: 1rem; font-size: 0.9rem; color: #555; }
-    .note {
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 0.75rem;
-      margin-bottom: 0.75rem;
-      background: #fafafa;
-    }
-    .note h3 { margin: 0 0 0.25rem; font-size: 1rem; }
-    .note p { margin: 0.25rem 0; white-space: pre-wrap; font-size: 0.9rem; }
-    .note .actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
-    .row { display: flex; gap: 0.5rem; align-items: flex-start; }
-    .row > input { flex: 1; }
-    pre {
-      background: #f4f4f4;
-      border-radius: 4px;
-      padding: 0.75rem;
-      overflow-x: auto;
-      max-height: 320px;
-      font-size: 0.8rem;
-      margin: 0.5rem 0 0;
-    }
-    .badge {
-      display: inline-block;
-      background: #e0e7ff;
-      color: #3730a3;
-      padding: 0.1rem 0.5rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      margin-left: 0.5rem;
-    }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Notes</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        max-width: 760px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+        color: #222;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        padding: 1rem;
+      }
+      legend {
+        font-weight: 600;
+        padding: 0 0.5rem;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+      input,
+      textarea,
+      button {
+        font: inherit;
+        padding: 0.5rem;
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      textarea {
+        min-height: 70px;
+        resize: vertical;
+      }
+      button {
+        background: #222;
+        color: white;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        border: none;
+      }
+      button:hover {
+        background: #444;
+      }
+      button.secondary {
+        background: #888;
+      }
+      button.danger {
+        background: #b00;
+      }
+      button.small {
+        width: auto;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.85rem;
+        margin: 0;
+      }
+      .hidden {
+        display: none !important;
+      }
+      #error {
+        color: #b00;
+        margin-bottom: 1rem;
+        min-height: 1.25rem;
+        font-size: 0.9rem;
+      }
+      #userInfo {
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      .note {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        background: #fafafa;
+      }
+      .note h3 {
+        margin: 0 0 0.25rem;
+        font-size: 1rem;
+      }
+      .note p {
+        margin: 0.25rem 0;
+        white-space: pre-wrap;
+        font-size: 0.9rem;
+      }
+      .note .actions {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      .row > input {
+        flex: 1;
+      }
+      pre {
+        background: #f4f4f4;
+        border-radius: 4px;
+        padding: 0.75rem;
+        overflow-x: auto;
+        max-height: 320px;
+        font-size: 0.8rem;
+        margin: 0.5rem 0 0;
+      }
+      .badge {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Secure Notes</h1>
+    <div id="userInfo"></div>
+    <div id="error"></div>
 
-  <h1>Secure Notes</h1>
-  <div id="userInfo"></div>
-  <div id="error"></div>
-
-  <!-- ============================================================
+    <!-- ============================================================
        AUTH SECTION
        ============================================================ -->
-  <div id="authSection">
-    <fieldset>
-      <legend>Register</legend>
-      <form id="registerForm">
-        <label>Name <input type="text" name="name" required minlength="2" maxlength="100" /></label>
-        <label>Email <input type="email" name="email" required /></label>
-        <label>Password <input type="password" name="password" required minlength="8" /></label>
-        <button type="submit">Register</button>
-      </form>
-    </fieldset>
+    <div id="authSection">
+      <fieldset>
+        <legend>Register</legend>
+        <form id="registerForm">
+          <label
+            >Name
+            <input
+              type="text"
+              name="name"
+              required
+              minlength="2"
+              maxlength="100"
+          /></label>
+          <label>Email <input type="email" name="email" required /></label>
+          <label
+            >Password
+            <input type="password" name="password" required minlength="8"
+          /></label>
+          <button type="submit">Register</button>
+        </form>
+      </fieldset>
 
-    <fieldset>
-      <legend>Login</legend>
-      <form id="loginForm">
-        <label>Email <input type="email" name="email" required /></label>
-        <label>Password <input type="password" name="password" required /></label>
-        <button type="submit">Login</button>
-      </form>
-    </fieldset>
-  </div>
-
-  <!-- ============================================================
-       NOTES SECTION (authenticated users)
-       ============================================================ -->
-  <div id="notesSection" class="hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin: 0;">My Notes</h2>
-      <button id="logoutBtn" class="secondary small" style="width: auto;">Logout</button>
+      <fieldset>
+        <legend>Login</legend>
+        <form id="loginForm">
+          <label>Email <input type="email" name="email" required /></label>
+          <label
+            >Password <input type="password" name="password" required
+          /></label>
+          <button type="submit">Login</button>
+        </form>
+      </fieldset>
     </div>
 
-    <fieldset>
-      <legend>New Note</legend>
-      <form id="createNoteForm">
-        <label>Title <input type="text" name="title" required maxlength="200" /></label>
-        <label>Content <textarea name="content" required></textarea></label>
-        <button type="submit">Create Note</button>
-      </form>
-    </fieldset>
+    <!-- ============================================================
+       NOTES SECTION (authenticated users)
+       ============================================================ -->
+    <div id="notesSection" class="hidden">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <h2 style="margin: 0">My Notes</h2>
+        <button id="logoutBtn" class="secondary small" style="width: auto">
+          Logout
+        </button>
+      </div>
 
-    <div id="notesList"></div>
-  </div>
+      <fieldset>
+        <legend>New Note</legend>
+        <form id="createNoteForm">
+          <label
+            >Title <input type="text" name="title" required maxlength="200"
+          /></label>
+          <label>Content <textarea name="content" required></textarea></label>
+          <button type="submit">Create Note</button>
+        </form>
+      </fieldset>
 
-  <!-- ============================================================
+      <div id="notesList"></div>
+    </div>
+
+    <!-- ============================================================
        POSTS SECTION (public) — Scenario 2
        ============================================================ -->
-  <div id="postsSection">
-    <h2>Posts by User <span class="badge">Scenario 2</span></h2>
-    <p style="font-size: 0.85rem; color: #666; margin-top: 0;">
-      Paste a user ID to view their posts. Retrieve is public per spec.
-    </p>
-    <fieldset>
-      <div class="row">
-        <input type="text" id="postsUserId" placeholder="User ID (24-char ObjectId)" />
-        <button id="loadPostsBtn" class="small" style="width: auto;">Load Posts</button>
-      </div>
-      <pre id="postsOutput"></pre>
-    </fieldset>
-  </div>
+    <div id="postsSection">
+      <h2>Posts by User <span class="badge">Scenario 2</span></h2>
 
-  <!-- ============================================================
+      <fieldset>
+        <legend>Browse users</legend>
+        <div class="row">
+          <select id="publicUserSelect" style="flex: 1; padding: 0.5rem">
+            <option value="">Loading users…</option>
+          </select>
+          <button id="loadPickedUserPostsBtn" class="small" style="width: auto">
+            Load Posts
+          </button>
+        </div>
+        <p style="font-size: 0.8rem; color: #999; margin: 0.5rem 0 0">
+          Public directory — only names are shown. Click "Load Posts" to see
+          that user's posts.
+        </p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Look up by user ID (advanced)</legend>
+        <div class="row">
+          <input type="text" id="postsUserId" placeholder="24-char ObjectId" />
+          <button id="loadPostsBtn" class="small" style="width: auto">
+            Load
+          </button>
+        </div>
+      </fieldset>
+
+      <pre id="postsOutput"></pre>
+    </div>
+
+    <!-- ============================================================
        ADMIN SECTION (admins only)
        ============================================================ -->
-  <div id="adminSection" class="hidden">
-    <h2>Admin</h2>
+    <div id="adminSection" class="hidden">
+      <h2>Admin</h2>
 
-    <fieldset>
-      <legend>All Users</legend>
-      <button id="loadUsersBtn" class="small" style="width: auto;">Load Users</button>
-      <pre id="usersOutput"></pre>
-    </fieldset>
+      <fieldset>
+        <legend>All Users</legend>
+        <button id="loadUsersBtn" class="small" style="width: auto">
+          Load Users
+        </button>
+        <pre id="usersOutput"></pre>
+      </fieldset>
 
-    <fieldset>
-      <legend>All Notes (everyone's)</legend>
-      <button id="loadAllNotesBtn" class="small" style="width: auto;">Load All Notes</button>
-      <pre id="allNotesOutput"></pre>
-    </fieldset>
+      <fieldset>
+        <legend>All Notes (everyone's)</legend>
+        <button id="loadAllNotesBtn" class="small" style="width: auto">
+          Load All Notes
+        </button>
+        <pre id="allNotesOutput"></pre>
+      </fieldset>
 
-    <fieldset>
-      <legend>Users Grouped by Interests <span class="badge">Scenario 1</span></legend>
-      <button id="loadInterestsBtn" class="small" style="width: auto;">Load</button>
-      <pre id="interestsOutput"></pre>
-    </fieldset>
-  </div>
+      <fieldset>
+        <legend>
+          Users Grouped by Interests <span class="badge">Scenario 1</span>
+        </legend>
+        <button id="loadInterestsBtn" class="small" style="width: auto">
+          Load
+        </button>
+        <pre id="interestsOutput"></pre>
+      </fieldset>
+    </div>
 
-  <script>
-    /* ============================================================
+    <script>
+      /* ============================================================
        API base — same origin as the served page
        ============================================================ */
-    const API = "/api";
+      const API = "/api";
 
-    /* ============================================================
+      /* ============================================================
        State
        ============================================================ */
-    let token = localStorage.getItem("token") || null;
-    let currentUser = JSON.parse(localStorage.getItem("user") || "null");
+      let token = localStorage.getItem("token") || null;
+      let currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
-    /* ============================================================
+      /* ============================================================
        DOM helpers
        ============================================================ */
-    const $ = (sel) => document.querySelector(sel);
-    const errorBox = $("#error");
-    const userInfo = $("#userInfo");
-    const authSection = $("#authSection");
-    const notesSection = $("#notesSection");
-    const adminSection = $("#adminSection");
-    const notesList = $("#notesList");
+      const $ = (sel) => document.querySelector(sel);
+      const errorBox = $("#error");
+      const userInfo = $("#userInfo");
+      const authSection = $("#authSection");
+      const notesSection = $("#notesSection");
+      const adminSection = $("#adminSection");
+      const notesList = $("#notesList");
 
-    /* ============================================================
+      /* ============================================================
        Utilities
        ============================================================ */
-    function showError(msg) {
-      errorBox.textContent = msg || "";
-    }
-
-    function pretty(obj) {
-      return JSON.stringify(obj, null, 2);
-    }
-
-    async function api(path, options = {}) {
-      const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${API}${path}`, { ...options, headers });
-      const body = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        const detail = body.errors?.length
-          ? ` — ${body.errors.map((e) => e.message).join(", ")}`
-          : "";
-        throw new Error((body.message || `Request failed (${res.status})`) + detail);
+      function showError(msg) {
+        errorBox.textContent = msg || "";
       }
-      return body;
-    }
 
-    /* ============================================================
+      function pretty(obj) {
+        return JSON.stringify(obj, null, 2);
+      }
+
+      async function api(path, options = {}) {
+        const headers = {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`${API}${path}`, { ...options, headers });
+        const body = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const detail = body.errors?.length
+            ? ` — ${body.errors.map((e) => e.message).join(", ")}`
+            : "";
+          throw new Error(
+            (body.message || `Request failed (${res.status})`) + detail,
+          );
+        }
+        return body;
+      }
+
+      /* ============================================================
        Session
        ============================================================ */
-    function setSession(user, jwt) {
-      token = jwt;
-      currentUser = user;
-      localStorage.setItem("token", jwt);
-      localStorage.setItem("user", JSON.stringify(user));
-      renderAuthState();
-    }
+      function setSession(user, jwt) {
+        token = jwt;
+        currentUser = user;
+        localStorage.setItem("token", jwt);
+        localStorage.setItem("user", JSON.stringify(user));
+        renderAuthState();
+      }
 
-    function clearSession() {
-      token = null;
-      currentUser = null;
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      renderAuthState();
-    }
+      function clearSession() {
+        token = null;
+        currentUser = null;
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        renderAuthState();
+      }
 
-    /* ============================================================
+      /* ============================================================
        Render auth state
        ============================================================ */
-    function renderAuthState() {
-      showError("");
+      function renderAuthState() {
+        showError("");
 
-      const loggedIn = Boolean(token && currentUser);
-      const isAdmin = currentUser?.role === "admin";
+        const loggedIn = Boolean(token && currentUser);
+        const isAdmin = currentUser?.role === "admin";
 
-      authSection.classList.toggle("hidden", loggedIn);
-      notesSection.classList.toggle("hidden", !loggedIn);
-      adminSection.classList.toggle("hidden", !isAdmin);
+        authSection.classList.toggle("hidden", loggedIn);
+        notesSection.classList.toggle("hidden", !loggedIn);
+        adminSection.classList.toggle("hidden", !isAdmin);
 
-      userInfo.textContent = loggedIn
-        ? `Logged in as ${currentUser.name} (${currentUser.role})`
-        : "";
+        userInfo.textContent = loggedIn
+          ? `Logged in as ${currentUser.name} (${currentUser.role})`
+          : "";
 
-      if (loggedIn) loadNotes();
-    }
+        if (loggedIn) loadNotes();
+      }
 
-    /* ============================================================
+      /* ============================================================
        NOTES — list / create / update / delete
        ============================================================ */
-    async function loadNotes() {
-      notesList.innerHTML = "<p>Loading…</p>";
-      try {
-        const { data } = await api("/notes?limit=50&sort=-createdAt");
+      async function loadNotes() {
+        notesList.innerHTML = "<p>Loading…</p>";
+        try {
+          const { data } = await api("/notes?limit=50&sort=-createdAt");
 
-        if (!data.results.length) {
-          notesList.innerHTML = "<p>No notes yet.</p>";
-          return;
-        }
+          if (!data.results.length) {
+            notesList.innerHTML = "<p>No notes yet.</p>";
+            return;
+          }
 
-        notesList.innerHTML = "";
-        data.results.forEach((note) => {
-          const div = document.createElement("div");
-          div.className = "note";
-          div.innerHTML = `
+          notesList.innerHTML = "";
+          data.results.forEach((note) => {
+            const div = document.createElement("div");
+            div.className = "note";
+            div.innerHTML = `
             <h3></h3>
             <p></p>
             <div class="actions">
@@ -280,170 +400,245 @@
               <button class="delete small danger" data-id="${note._id}">Delete</button>
             </div>
           `;
-          div.querySelector("h3").textContent = note.title;
-          div.querySelector("p").textContent = note.content;
-          div.querySelector(".edit").addEventListener("click", () => editNote(note));
-          div.querySelector(".delete").addEventListener("click", () => deleteNote(note._id));
-          notesList.appendChild(div);
-        });
-      } catch (err) {
-        notesList.innerHTML = "";
-        showError(err.message);
+            div.querySelector("h3").textContent = note.title;
+            div.querySelector("p").textContent = note.content;
+            div
+              .querySelector(".edit")
+              .addEventListener("click", () => editNote(note));
+            div
+              .querySelector(".delete")
+              .addEventListener("click", () => deleteNote(note._id));
+            notesList.appendChild(div);
+          });
+        } catch (err) {
+          notesList.innerHTML = "";
+          showError(err.message);
+        }
       }
-    }
 
-    async function editNote(note) {
-      const title = prompt("New title:", note.title);
-      if (title === null) return;
-      const content = prompt("New content:", note.content);
-      if (content === null) return;
+      async function editNote(note) {
+        const title = prompt("New title:", note.title);
+        if (title === null) return;
+        const content = prompt("New content:", note.content);
+        if (content === null) return;
 
-      try {
-        await api(`/notes/${note._id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ title, content }),
-        });
-        loadNotes();
-      } catch (err) {
-        showError(err.message);
+        try {
+          await api(`/notes/${note._id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ title, content }),
+          });
+          loadNotes();
+        } catch (err) {
+          showError(err.message);
+        }
       }
-    }
 
-    async function deleteNote(id) {
-      if (!confirm("Delete this note?")) return;
-      try {
-        await api(`/notes/${id}`, { method: "DELETE" });
-        loadNotes();
-      } catch (err) {
-        showError(err.message);
+      async function deleteNote(id) {
+        if (!confirm("Delete this note?")) return;
+        try {
+          await api(`/notes/${id}`, { method: "DELETE" });
+          loadNotes();
+        } catch (err) {
+          showError(err.message);
+        }
       }
-    }
 
-    /* ============================================================
+      /* ============================================================
        AUTH FORMS
        ============================================================ */
-    $("#registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showError("");
-      const form = new FormData(e.target);
-      try {
-        const { data } = await api("/auth/register", {
-          method: "POST",
-          body: JSON.stringify({
-            name: form.get("name"),
-            email: form.get("email"),
-            password: form.get("password"),
-          }),
-        });
-        setSession(data.user, data.token);
-        e.target.reset();
-      } catch (err) {
-        showError(err.message);
-      }
-    });
+      $("#registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showError("");
+        const form = new FormData(e.target);
+        try {
+          const { data } = await api("/auth/register", {
+            method: "POST",
+            body: JSON.stringify({
+              name: form.get("name"),
+              email: form.get("email"),
+              password: form.get("password"),
+            }),
+          });
+          setSession(data.user, data.token);
+          e.target.reset();
+        } catch (err) {
+          showError(err.message);
+        }
+      });
 
-    $("#loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showError("");
-      const form = new FormData(e.target);
-      try {
-        const { data } = await api("/auth/login", {
-          method: "POST",
-          body: JSON.stringify({
-            email: form.get("email"),
-            password: form.get("password"),
-          }),
-        });
-        setSession(data.user, data.token);
-        e.target.reset();
-      } catch (err) {
-        showError(err.message);
-      }
-    });
+      $("#loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showError("");
+        const form = new FormData(e.target);
+        try {
+          const { data } = await api("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              email: form.get("email"),
+              password: form.get("password"),
+            }),
+          });
+          setSession(data.user, data.token);
+          e.target.reset();
+        } catch (err) {
+          showError(err.message);
+        }
+      });
 
-    $("#logoutBtn").addEventListener("click", async () => {
-      try { await api("/auth/logout", { method: "POST" }); } catch {}
-      clearSession();
-    });
+      $("#logoutBtn").addEventListener("click", async () => {
+        try {
+          await api("/auth/logout", { method: "POST" });
+        } catch {}
+        clearSession();
+      });
 
-    /* ============================================================
+      /* ============================================================
        CREATE NOTE
        ============================================================ */
-    $("#createNoteForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showError("");
-      const form = new FormData(e.target);
-      try {
-        await api("/notes", {
-          method: "POST",
-          body: JSON.stringify({
-            title: form.get("title"),
-            content: form.get("content"),
-          }),
-        });
-        e.target.reset();
-        loadNotes();
-      } catch (err) {
-        showError(err.message);
-      }
-    });
+      $("#createNoteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showError("");
+        const form = new FormData(e.target);
+        try {
+          await api("/notes", {
+            method: "POST",
+            body: JSON.stringify({
+              title: form.get("title"),
+              content: form.get("content"),
+            }),
+          });
+          e.target.reset();
+          loadNotes();
+        } catch (err) {
+          showError(err.message);
+        }
+      });
 
-    /* ============================================================
+      /* ============================================================
        POSTS — Scenario 2 (public)
        ============================================================ */
-    $("#loadPostsBtn").addEventListener("click", async () => {
-      const userId = $("#postsUserId").value.trim();
-      const out = $("#postsOutput");
-      out.textContent = "Loading…";
-      try {
-        const res = await api(`/posts/user/${userId}?limit=50&sort=-createdAt`);
-        out.textContent = pretty(res.data);
-      } catch (err) {
-        out.textContent = err.message;
-      }
-    });
+      $("#loadPostsBtn").addEventListener("click", async () => {
+        const userId = $("#postsUserId").value.trim();
+        const out = $("#postsOutput");
+        out.textContent = "Loading…";
+        try {
+          const res = await api(
+            `/posts/user/${userId}?limit=50&sort=-createdAt`,
+          );
+          out.textContent = pretty(res.data);
+        } catch (err) {
+          out.textContent = err.message;
+        }
+      });
 
-    /* ============================================================
+      /* ============================================================
+   Public user directory
+   ============================================================ */
+      async function loadPublicUsers() {
+        const select = $("#publicUserSelect");
+        try {
+          const { data } = await api("/users?limit=50&sort=-createdAt");
+          select.innerHTML = '<option value="">— pick a user —</option>';
+
+          if (!data.results.length) {
+            select.innerHTML = '<option value="">No users yet</option>';
+            return;
+          }
+
+          data.results.forEach((u) => {
+            const opt = document.createElement("option");
+            opt.value = u._id;
+            opt.textContent = u.name; // Only name — no email leak
+            select.appendChild(opt);
+          });
+        } catch (err) {
+          select.innerHTML = `<option value="">Failed to load: ${err.message}</option>`;
+        }
+      }
+
+      /* ============================================================
+   Load posts for a picked user
+   ============================================================ */
+      $("#loadPickedUserPostsBtn").addEventListener("click", async () => {
+        const userId = $("#publicUserSelect").value;
+        if (!userId) {
+          $("#postsOutput").textContent = "Pick a user first.";
+          return;
+        }
+        await loadPostsForUser(userId);
+      });
+
+      /* ============================================================
+   Load posts for a manually typed id
+   ============================================================ */
+      $("#loadPostsBtn").addEventListener("click", async () => {
+        const userId = $("#postsUserId").value.trim();
+        await loadPostsForUser(userId);
+      });
+
+      /* ============================================================
+   Shared loader
+   ============================================================ */
+      async function loadPostsForUser(userId) {
+        const out = $("#postsOutput");
+
+        if (!userId) {
+          out.textContent = "Please pick a user or enter an ID.";
+          return;
+        }
+
+        out.textContent = "Loading…";
+        try {
+          const res = await api(
+            `/posts/user/${userId}?limit=50&sort=-createdAt`,
+          );
+          out.textContent = pretty(res.data);
+        } catch (err) {
+          out.textContent = err.message;
+        }
+      }
+
+      /* ============================================================
        ADMIN — users / all notes / interests (Scenario 1)
        ============================================================ */
-    $("#loadUsersBtn").addEventListener("click", async () => {
-      const out = $("#usersOutput");
-      out.textContent = "Loading…";
-      try {
-        const res = await api("/admin/users?limit=50&sort=-createdAt");
-        out.textContent = pretty(res.data);
-      } catch (err) {
-        out.textContent = err.message;
-      }
-    });
+      $("#loadUsersBtn").addEventListener("click", async () => {
+        const out = $("#usersOutput");
+        out.textContent = "Loading…";
+        try {
+          const res = await api("/admin/users?limit=50&sort=-createdAt");
+          out.textContent = pretty(res.data);
+        } catch (err) {
+          out.textContent = err.message;
+        }
+      });
 
-    $("#loadAllNotesBtn").addEventListener("click", async () => {
-      const out = $("#allNotesOutput");
-      out.textContent = "Loading…";
-      try {
-        const res = await api("/admin/notes?limit=50&sort=-createdAt");
-        out.textContent = pretty(res.data);
-      } catch (err) {
-        out.textContent = err.message;
-      }
-    });
+      $("#loadAllNotesBtn").addEventListener("click", async () => {
+        const out = $("#allNotesOutput");
+        out.textContent = "Loading…";
+        try {
+          const res = await api("/admin/notes?limit=50&sort=-createdAt");
+          out.textContent = pretty(res.data);
+        } catch (err) {
+          out.textContent = err.message;
+        }
+      });
 
-    $("#loadInterestsBtn").addEventListener("click", async () => {
-      const out = $("#interestsOutput");
-      out.textContent = "Loading…";
-      try {
-        const res = await api("/admin/interests");
-        out.textContent = pretty(res.data);
-      } catch (err) {
-        out.textContent = err.message;
-      }
-    });
+      $("#loadInterestsBtn").addEventListener("click", async () => {
+        const out = $("#interestsOutput");
+        out.textContent = "Loading…";
+        try {
+          const res = await api("/admin/interests");
+          out.textContent = pretty(res.data);
+        } catch (err) {
+          out.textContent = err.message;
+        }
+      });
 
-    /* ============================================================
+      /* ============================================================
        Boot
        ============================================================ */
-    renderAuthState();
-  </script>
-
-</body>
+      renderAuthState();
+      loadPublicUsers();
+    </script>
+  </body>
 </html>

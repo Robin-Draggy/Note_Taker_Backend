@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Notes</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.5rem; }
+    fieldset { border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; padding: 1rem; }
+    legend { font-weight: 600; padding: 0 0.5rem; }
+    label { display: block; margin-bottom: 0.5rem; }
+    input, textarea, button {
+      font: inherit;
+      padding: 0.5rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    button {
+      background: #222;
+      color: white;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    button:hover { background: #444; }
+    button.secondary { background: #888; }
+    .note {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .note h3 { margin: 0 0 0.25rem 0; }
+    .note p { margin: 0.25rem 0; white-space: pre-wrap; }
+    .note .actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+    .note .actions button { width: auto; margin-top: 0; padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+    #error { color: #b00; margin-bottom: 1rem; }
+    #userInfo { margin-bottom: 1rem; font-size: 0.875rem; color: #666; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>Secure Notes</h1>
+  <div id="error"></div>
+  <div id="userInfo"></div>
+
+  <!-- Auth section -->
+  <div id="authSection">
+    <fieldset>
+      <legend>Register</legend>
+      <form id="registerForm">
+        <label>Name <input type="text" name="name" required minlength="2" /></label>
+        <label>Email <input type="email" name="email" required /></label>
+        <label>Password <input type="password" name="password" required minlength="8" /></label>
+        <button type="submit">Register</button>
+      </form>
+    </fieldset>
+
+    <fieldset>
+      <legend>Login</legend>
+      <form id="loginForm">
+        <label>Email <input type="email" name="email" required /></label>
+        <label>Password <input type="password" name="password" required /></label>
+        <button type="submit">Login</button>
+      </form>
+    </fieldset>
+  </div>
+
+  <!-- Notes section -->
+  <div id="notesSection" class="hidden">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h2 style="margin: 0; font-size: 1.25rem;">My Notes</h2>
+      <button id="logoutBtn" class="secondary" style="width: auto; padding: 0.25rem 0.75rem;">Logout</button>
+    </div>
+
+    <fieldset>
+      <legend>New Note</legend>
+      <form id="createNoteForm">
+        <label>Title <input type="text" name="title" required maxlength="200" /></label>
+        <label>Content <textarea name="content" required></textarea></label>
+        <button type="submit">Create Note</button>
+      </form>
+    </fieldset>
+
+    <div id="notesList"></div>
+  </div>
+
+  <script>
+    // ====== API base (same origin as the page) ======
+    const API = "/api";
+
+    // ====== State ======
+    let token = localStorage.getItem("token");
+    let currentUser = JSON.parse(localStorage.getItem("user") || "null");
+
+    // ====== DOM ======
+    const $ = (sel) => document.querySelector(sel);
+    const errorBox = $("#error");
+    const userInfo = $("#userInfo");
+    const authSection = $("#authSection");
+    const notesSection = $("#notesSection");
+    const notesList = $("#notesList");
+
+    // ====== Helpers ======
+    function showError(msg) {
+      errorBox.textContent = msg || "";
+    }
+
+    function setSession(user, jwt) {
+      token = jwt;
+      currentUser = user;
+      localStorage.setItem("token", jwt);
+      localStorage.setItem("user", JSON.stringify(user));
+      renderAuthState();
+    }
+
+    function clearSession() {
+      token = null;
+      currentUser = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      renderAuthState();
+    }
+
+    async function api(path, options = {}) {
+      const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API}${path}`, { ...options, headers });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = body.message || `Request failed (${res.status})`;
+        const detail = body.errors?.length
+          ? ` — ${body.errors.map(e => e.message).join(", ")}`
+          : "";
+        throw new Error(msg + detail);
+      }
+      return body;
+    }
+
+    // ====== Render ======
+    function renderAuthState() {
+      showError("");
+      if (token && currentUser) {
+        authSection.classList.add("hidden");
+        notesSection.classList.remove("hidden");
+        userInfo.textContent = `Logged in as ${currentUser.name} (${currentUser.role})`;
+        loadNotes();
+      } else {
+        authSection.classList.remove("hidden");
+        notesSection.classList.add("hidden");
+        userInfo.textContent = "";
+      }
+    }
+
+    async function loadNotes() {
+      notesList.innerHTML = "<p>Loading…</p>";
+      try {
+        const { data } = await api("/notes?limit=50");
+        if (!data.results.length) {
+          notesList.innerHTML = "<p>No notes yet.</p>";
+          return;
+        }
+        notesList.innerHTML = "";
+        data.results.forEach((note) => {
+          const div = document.createElement("div");
+          div.className = "note";
+          div.innerHTML = `
+            <h3></h3>
+            <p></p>
+            <div class="actions">
+              <button class="delete" data-id="${note._id}">Delete</button>
+            </div>
+          `;
+          div.querySelector("h3").textContent = note.title;
+          div.querySelector("p").textContent = note.content;
+          div.querySelector(".delete").addEventListener("click", () => deleteNote(note._id));
+          notesList.appendChild(div);
+        });
+      } catch (err) {
+        notesList.innerHTML = "";
+        showError(err.message);
+      }
+    }
+
+    async function deleteNote(id) {
+      if (!confirm("Delete this note?")) return;
+      try {
+        await api(`/notes/${id}`, { method: "DELETE" });
+        loadNotes();
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    // ====== Forms ======
+    $("#registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      showError("");
+      const form = new FormData(e.target);
+      try {
+        const { data } = await api("/auth/register", {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.get("name"),
+            email: form.get("email"),
+            password: form.get("password"),
+          }),
+        });
+        setSession(data.user, data.token);
+        e.target.reset();
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+
+    $("#loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      showError("");
+      const form = new FormData(e.target);
+      try {
+        const { data } = await api("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: form.get("email"),
+            password: form.get("password"),
+          }),
+        });
+        setSession(data.user, data.token);
+        e.target.reset();
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+
+    $("#createNoteForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      showError("");
+      const form = new FormData(e.target);
+      try {
+        await api("/notes", {
+          method: "POST",
+          body: JSON.stringify({
+            title: form.get("title"),
+            content: form.get("content"),
+          }),
+        });
+        e.target.reset();
+        loadNotes();
+      } catch (err) {
+        showError(err.message);
+      }
+    });
+
+    $("#logoutBtn").addEventListener("click", async () => {
+      try { await api("/auth/logout", { method: "POST" }); } catch {}
+      clearSession();
+    });
+
+    // ====== Boot ======
+    renderAuthState();
+  </script>
+</body>
+</html>

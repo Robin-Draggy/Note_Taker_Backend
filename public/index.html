@@ -216,6 +216,7 @@
     <!-- ============================================================
        POSTS SECTION (public) — Scenario 2
        ============================================================ -->
+    n
     <div id="postsSection">
       <h2>Posts by User <span class="badge">Scenario 2</span></h2>
 
@@ -235,17 +236,7 @@
         </p>
       </fieldset>
 
-      <fieldset>
-        <legend>Look up by user ID (advanced)</legend>
-        <div class="row">
-          <input type="text" id="postsUserId" placeholder="24-char ObjectId" />
-          <button id="loadPostsBtn" class="small" style="width: auto">
-            Load
-          </button>
-        </div>
-      </fieldset>
-
-      <pre id="postsOutput"></pre>
+      <div id="postsOutput" style="margin-top: 0.75rem"></div>
     </div>
 
     <!-- ============================================================
@@ -256,10 +247,8 @@
 
       <fieldset>
         <legend>All Users</legend>
-        <button id="loadUsersBtn" class="small" style="width: auto">
-          Load Users
-        </button>
-        <pre id="usersOutput"></pre>
+        <button id="ttn" class="small" style="width: auto">Load Users</button>
+        <div id="usersOutput" style="margin-top: 0.75rem"></div>
       </fieldset>
 
       <fieldset>
@@ -267,7 +256,7 @@
         <button id="loadAllNotesBtn" class="small" style="width: auto">
           Load All Notes
         </button>
-        <pre id="allNotesOutput"></pre>
+        <div id="allNotesOutput" style="margin-top: 0.75rem"></div>
       </fieldset>
 
       <fieldset>
@@ -277,7 +266,7 @@
         <button id="loadInterestsBtn" class="small" style="width: auto">
           Load
         </button>
-        <pre id="interestsOutput"></pre>
+        <div id="interestsOutput" style="margin-top: 0.75rem"></div>
       </fieldset>
     </div>
 
@@ -583,18 +572,36 @@
         const out = $("#postsOutput");
 
         if (!userId) {
-          out.textContent = "Please pick a user or enter an ID.";
+          out.innerHTML = "<em>Please pick a user or enter an ID.</em>";
           return;
         }
 
-        out.textContent = "Loading…";
+        out.innerHTML = "<em>Loading…</em>";
         try {
-          const res = await api(
+          const { data } = await api(
             `/posts/user/${userId}?limit=50&sort=-createdAt`,
           );
-          out.textContent = pretty(res.data);
+          if (!data.results.length) {
+            out.innerHTML = "<em>This user has no posts.</em>";
+            return;
+          }
+          out.innerHTML = "";
+          data.results.forEach((p) => {
+            const div = document.createElement("div");
+            div.className = "note";
+            div.innerHTML = `
+        <h3></h3>
+        <p></p>
+        <div style="font-size:0.8rem; color:#666; margin-top:0.25rem;"></div>
+      `;
+            div.querySelector("h3").textContent = p.title;
+            div.querySelector("p").textContent = p.content;
+            div.querySelector("div").textContent =
+              `by ${p.author?.name ?? "unknown"} — ${new Date(p.createdAt).toLocaleString()}`;
+            out.appendChild(div);
+          });
         } catch (err) {
-          out.textContent = err.message;
+          out.innerHTML = `<em>${err.message}</em>`;
         }
       }
 
@@ -603,34 +610,93 @@
        ============================================================ */
       $("#loadUsersBtn").addEventListener("click", async () => {
         const out = $("#usersOutput");
-        out.textContent = "Loading…";
+        out.innerHTML = "<em>Loading…</em>";
         try {
-          const res = await api("/admin/users?limit=50&sort=-createdAt");
-          out.textContent = pretty(res.data);
+          const { data } = await api("/admin/users?limit=50&sort=-createdAt");
+          if (!data.results.length) {
+            out.innerHTML = "<em>No users.</em>";
+            return;
+          }
+          out.innerHTML = "";
+          data.results.forEach((u) => {
+            const row = document.createElement("div");
+            row.style.cssText =
+              "padding: 0.4rem 0; border-bottom: 1px solid #eee;";
+            row.innerHTML = `
+        <strong></strong>
+        <span style="color:#666; font-size:0.85rem;"></span>
+        <span class="badge" style="background:#eee; color:#333;"></span>
+      `;
+            row.querySelector("strong").textContent = u.name;
+            row.querySelector("span").textContent = " — " + u.email;
+            row.querySelector(".badge").textContent = u.role;
+            out.appendChild(row);
+          });
         } catch (err) {
-          out.textContent = err.message;
+          out.innerHTML = `<em>${err.message}</em>`;
         }
       });
 
       $("#loadAllNotesBtn").addEventListener("click", async () => {
         const out = $("#allNotesOutput");
-        out.textContent = "Loading…";
+        out.innerHTML = "<em>Loading…</em>";
         try {
-          const res = await api("/admin/notes?limit=50&sort=-createdAt");
-          out.textContent = pretty(res.data);
+          const { data } = await api("/admin/notes?limit=50&sort=-createdAt");
+          if (!data.results.length) {
+            out.innerHTML = "<em>No notes.</em>";
+            return;
+          }
+          out.innerHTML = "";
+          data.results.forEach((n) => {
+            const div = document.createElement("div");
+            div.className = "note";
+            div.innerHTML = `
+        <h3></h3>
+        <p></p>
+        <div style="font-size:0.8rem; color:#666; margin-top:0.25rem;"></div>
+      `;
+            div.querySelector("h3").textContent = n.title;
+            div.querySelector("p").textContent = n.content;
+            div.querySelector("div").textContent =
+              `by ${n.owner?.name ?? "unknown"} (${n.owner?.email ?? "—"})`;
+            out.appendChild(div);
+          });
         } catch (err) {
-          out.textContent = err.message;
+          out.innerHTML = `<em>${err.message}</em>`;
         }
       });
 
       $("#loadInterestsBtn").addEventListener("click", async () => {
         const out = $("#interestsOutput");
-        out.textContent = "Loading…";
+        out.innerHTML = "<em>Loading…</em>";
         try {
-          const res = await api("/admin/interests");
-          out.textContent = pretty(res.data);
+          const { data } = await api("/admin/interests");
+          if (!data.length) {
+            out.innerHTML = "<em>No interests recorded yet.</em>";
+            return;
+          }
+          out.innerHTML = "";
+          data.forEach((group) => {
+            const section = document.createElement("div");
+            section.style.cssText = "margin-bottom: 1rem;";
+
+            const header = document.createElement("div");
+            header.style.cssText = "font-weight: 600; margin-bottom: 0.25rem;";
+            header.textContent = `${group._id} (${group.count})`;
+            section.appendChild(header);
+
+            const list = document.createElement("ul");
+            list.style.cssText = "margin: 0; padding-left: 1.25rem;";
+            group.users.forEach((u) => {
+              const li = document.createElement("li");
+              li.textContent = `${u.name} (${u.email})`;
+              list.appendChild(li);
+            });
+            section.appendChild(list);
+            out.appendChild(section);
+          });
         } catch (err) {
-          out.textContent = err.message;
+          out.innerHTML = `<em>${err.message}</em>`;
         }
       });
 

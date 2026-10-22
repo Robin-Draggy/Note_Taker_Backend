@@ -1,6 +1,11 @@
 import { ApiError } from "../utils/ApiError.js";
 
 export const requireRole = (...roles) => (req, _res, next) => {
+  console.log("=== requireRole debug ===", {
+    userRole: req.user?.role,
+    allowedRoles: roles,
+    willAllow: roles.includes(req.user?.role),
+  });
   if (!req.user) {
     return next(new ApiError(401, "Authentication required"));
   }

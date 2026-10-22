@@ -4,7 +4,8 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 
 import { router as authRoutes } from "./routes/auth.route.js";
-import { router as noteRoutes } from "./routes/note.route.js"
+import { router as noteRoutes } from "./routes/note.route.js";
+import { router as adminRoutes } from "./routes/admin.route.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -20,6 +21,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

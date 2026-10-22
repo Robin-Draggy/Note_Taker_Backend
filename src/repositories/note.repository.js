@@ -21,3 +21,7 @@ export const updateNoteByIdRepo = (id, updateData) =>
 
 export const deleteNoteByIdRepo = (id) =>
   Note.findByIdAndDelete(id);
+
+
+export const findAllNotesQuery = () =>
+  Note.find({}).populate("owner", "name email");
